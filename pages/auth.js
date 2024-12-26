@@ -1,17 +1,16 @@
 // pages/auth.js
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
-
+import { useRouter } from 'next/router';
 export default function SignInSignUp() {
   const [isSignUp, setIsSignUp] = useState(true); // Toggle between SignUp and SignIn
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
+  const router = useRouter();
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = isSignUp ? '/api/auth/signup' : '/api/auth/signin';
-
+    const url = isSignUp ? '/api/auth/signup' : '/api/auth/signin';  
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -22,6 +21,9 @@ export default function SignInSignUp() {
 
     if (response.ok) {
       alert(data.message);
+      if(!isSignUp){
+        router.push('/client/dashboard')
+      }
     } else {
       setError(data.error);
     }

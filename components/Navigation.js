@@ -26,7 +26,7 @@ const Navigation = ({ isServer = false }) => {
           <Stack direction="row" alignItems="center" spacing={2}>
             <Box
               component="img"
-              src="/logo.svg"
+              src="/side_image.svg"
               alt="Logo"
               sx={{ height: 32 }}
             />

@@ -1,96 +1,201 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  TextField, 
-  Button, 
-  Card, 
-  CardContent,
-  Typography,
-  IconButton
-} from '@mui/material';
+import { Box, Container, TextField, Button, Typography, Paper, Input } from '@mui/material';
 import { Send as SendIcon, AttachFile as AttachFileIcon } from '@mui/icons-material';
+import TopBar from '../components/TopBar';
 
-const ComposeEmail = ({ onSend }) => {
-  const [to, setTo] = useState('');
-  const [subject, setSubject] = useState('');
-  const [body, setBody] = useState('');
+const ComposeEmail = () => {
+  const [formData, setFormData] = useState({
+    recipient: '',
+    subject: '',
+    message: '',
+    file: null, // For storing the uploaded file metadata
+  });
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSend({ to, subject, body });
-    setTo('');
-    setSubject('');
-    setBody('');
+  // Create a ref to handle file input click
+  const fileInputRef = React.createRef();
+
+  // Function to handle form data change
+  const handleChange = (field) => (event) => {
+    setFormData({ ...formData, [field]: event.target.value });
+  };
+
+  // Function to handle file upload (simulate upload and measure time)
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const startTime = performance.now();
+      // Simulating file processing (e.g., reading it locally)
+      await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve();
+        reader.readAsArrayBuffer(file);
+      });
+      const uploadTime = performance.now() - startTime;
+
+      setFormData({
+        ...formData,
+        file: { name: file.name, size: file.size, uploadTime },
+      });
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+  
+    try {
+      // Collect network stats using performance API
+      const timing = performance.getEntriesByType('navigation')[0];
+      const dnsTime = timing.domainLookupEnd - timing.domainLookupStart;
+      const connectTime = timing.connectEnd - timing.connectStart;
+      const sslHandshakeTime = timing.connectEnd - timing.secureConnectionStart;
+      const ttfb = timing.responseStart - timing.requestStart;
+      // Collect network stats using performance API
+      const networkType = navigator.connection?.type || "Wifi";
+      console.log("Network Type:", networkType);
+      const ipAddress = await fetchIpAddress();
+      const latency = Date.now();
+      const fileStats = formData.file ? { ...formData.file } : null;
+      console.log(latency);
+      // Network stats to send
+      const networkStats = {
+        dnsTime,
+        connectTime,
+        sslHandshakeTime,
+        ttfb,
+        networkType,
+        ipAddress,
+        latency,
+        uploadTime: fileStats?.uploadTime || null, // Include uploadTime
+      };
+  
+      // Send the data to the backend
+      const response = await fetch('/api/sendEmail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipient: formData.recipient,
+          subject: formData.subject,
+          message: formData.message,
+          networkStats,
+          fileMetadata: fileStats, // Include file metadata but not the file itself
+        }),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok) throw new Error(result.message);
+  
+      alert('Email sent and stored successfully!');
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('Failed to send email. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch IP address (similar to previous code)
+  const fetchIpAddress = async () => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      console.error('Error fetching IP address:', error);
+      return 'Unavailable';
+    }
   };
 
   return (
-    <Card elevation={0} sx={{ mb: 3, overflow: 'visible' }}>
-      <CardContent sx={{ p: 3 }}>
-        <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 600, color: '#ffffff' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <TopBar />
+      <Container maxWidth="md" sx={{ pt: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom className="gradient-text">
           Compose Email
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="to"
-            label="To"
-            name="to"
-            autoComplete="email"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="subject"
-            label="Subject"
-            name="subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="body"
-            label="Message"
-            id="body"
-            multiline
-            rows={6}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <IconButton color="inherit" aria-label="attach file">
-              <AttachFileIcon />
-            </IconButton>
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{ 
-                px: 4, 
-                py: 1, 
-                background: 'linear-gradient(45deg, #f39c12 30%, #f1c40f 90%)',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #e67e22 30%, #f39c12 90%)',
-                },
-              }}
-              endIcon={<SendIcon />}
-            >
-              Send
-            </Button>
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            borderRadius: '16px',
+            overflow: 'hidden',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.5) 100%)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="To"
+              margin="normal"
+              variant="outlined"
+              required
+              value={formData.recipient}
+              onChange={handleChange('recipient')}
+              sx={{ bgcolor: 'rgba(255,255,255,0.7)' }}
+            />
+            <TextField
+              fullWidth
+              label="Subject"
+              margin="normal"
+              variant="outlined"
+              required
+              value={formData.subject}
+              onChange={handleChange('subject')}
+              sx={{ bgcolor: 'rgba(255,255,255,0.7)' }}
+            />
+            <TextField
+              fullWidth
+              label="Message"
+              margin="normal"
+              variant="outlined"
+              multiline
+              rows={6}
+              required
+              value={formData.message}
+              onChange={handleChange('message')}
+              sx={{ bgcolor: 'rgba(255,255,255,0.7)' }}
+            />
+
+            {/* Flex container for aligning the buttons */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+              {/* File input button aligned to the left */}
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => fileInputRef.current.click()}
+                startIcon={<AttachFileIcon />}
+              >
+                {formData.file ? formData.file.name : 'Choose a file'}
+              </Button>
+              {/* Hidden file input element */}
+              <Input
+                type="file"
+                inputRef={fileInputRef}
+                onChange={handleFileChange}
+                sx={{ display: 'none' }}
+              />
+
+              {/* Send Email button aligned to the right */}
+              <Button
+                type="submit"
+                variant="contained"
+                color="secondary"
+                startIcon={<SendIcon />}
+                disabled={loading}
+              >
+                {loading ? 'Sending...' : 'Send Email'}
+              </Button>
+            </Box>
+          </form>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 
 export default ComposeEmail;
-
