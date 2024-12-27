@@ -1,17 +1,30 @@
-import React, { useState } from 'react';
-import { Box, Container, TextField, Button, Typography, Paper, Input } from '@mui/material';
-import { Send as SendIcon, AttachFile as AttachFileIcon } from '@mui/icons-material';
-import TopBar from '../components/TopBar';
+import React, { useState } from "react";
+import {
+  Box,
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  Input,
+} from "@mui/material";
+import {
+  Send as SendIcon,
+  AttachFile as AttachFileIcon,
+} from "@mui/icons-material";
+import TopBar from "../components/TopBar";
+import { useRouter } from "next/router";
 
 const ComposeEmail = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    recipient: '',
-    subject: '',
-    message: '',
+    recipient: "",
+    subject: "",
+    message: "",
     file: null, // For storing the uploaded file metadata
   });
   const [loading, setLoading] = useState(false);
-
+  const userEmail = router.query;
   // Create a ref to handle file input click
   const fileInputRef = React.createRef();
 
@@ -43,21 +56,21 @@ const ComposeEmail = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-  
+
     try {
       // Collect network stats using performance API
-      const timing = performance.getEntriesByType('navigation')[0];
-      const dnsTime = timing.domainLookupEnd - timing.domainLookupStart;
-      const connectTime = timing.connectEnd - timing.connectStart;
-      const sslHandshakeTime = timing.connectEnd - timing.secureConnectionStart;
+      const timing = performance.getEntriesByType("navigation")[0];
+      const dnsTime = (timing.domainLookupEnd - timing.domainLookupStart).toFixed(2);
+      const connectTime = (timing.connectEnd - timing.connectStart).toFixed(2);
+      const sslHandshakeTime = (timing.connectEnd - timing.secureConnectionStart).toFixed(2);
       const ttfb = timing.responseStart - timing.requestStart;
       // Collect network stats using performance API
       const networkType = navigator.connection?.type || "Wifi";
-      console.log("Network Type:", networkType);
+      // console.log("Network Type:", networkType);
       const ipAddress = await fetchIpAddress();
       const latency = Date.now();
       const fileStats = formData.file ? { ...formData.file } : null;
-      console.log(latency);
+      // console.log(latency);
       // Network stats to send
       const networkStats = {
         dnsTime,
@@ -69,12 +82,12 @@ const ComposeEmail = () => {
         latency,
         uploadTime: fileStats?.uploadTime || null, // Include uploadTime
       };
-  
+
       // Send the data to the backend
-      const response = await fetch('/api/sendEmail', {
-        method: 'POST',
+      const response = await fetch("/api/sendEmail", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           recipient: formData.recipient,
@@ -84,15 +97,15 @@ const ComposeEmail = () => {
           fileMetadata: fileStats, // Include file metadata but not the file itself
         }),
       });
-  
+
       const result = await response.json();
-  
+
       if (!response.ok) throw new Error(result.message);
-  
-      alert('Email sent and stored successfully!');
+
+      alert("Email sent and stored successfully!");
     } catch (error) {
-      console.error('Error sending email:', error);
-      alert('Failed to send email. Please try again later.');
+      console.error("Error sending email:", error);
+      alert("Failed to send email. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -101,30 +114,36 @@ const ComposeEmail = () => {
   // Fetch IP address (similar to previous code)
   const fetchIpAddress = async () => {
     try {
-      const response = await fetch('https://api.ipify.org?format=json');
+      const response = await fetch("https://api.ipify.org?format=json");
       const data = await response.json();
       return data.ip;
     } catch (error) {
-      console.error('Error fetching IP address:', error);
-      return 'Unavailable';
+      console.error("Error fetching IP address:", error);
+      return "Unavailable";
     }
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <TopBar />
       <Container maxWidth="md" sx={{ pt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom className="gradient-text">
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          className="gradient-text"
+        >
           Compose Email
         </Typography>
         <Paper
           elevation={3}
           sx={{
             p: 4,
-            borderRadius: '16px',
-            overflow: 'hidden',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.5) 100%)',
-            backdropFilter: 'blur(10px)',
+            borderRadius: "16px",
+            overflow: "hidden",
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.5) 100%)",
+            backdropFilter: "blur(10px)",
           }}
         >
           <form onSubmit={handleSubmit}>
@@ -135,8 +154,8 @@ const ComposeEmail = () => {
               variant="outlined"
               required
               value={formData.recipient}
-              onChange={handleChange('recipient')}
-              sx={{ bgcolor: 'rgba(255,255,255,0.7)' }}
+              onChange={handleChange("recipient")}
+              sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
             />
             <TextField
               fullWidth
@@ -145,8 +164,8 @@ const ComposeEmail = () => {
               variant="outlined"
               required
               value={formData.subject}
-              onChange={handleChange('subject')}
-              sx={{ bgcolor: 'rgba(255,255,255,0.7)' }}
+              onChange={handleChange("subject")}
+              sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
             />
             <TextField
               fullWidth
@@ -157,12 +176,14 @@ const ComposeEmail = () => {
               rows={6}
               required
               value={formData.message}
-              onChange={handleChange('message')}
-              sx={{ bgcolor: 'rgba(255,255,255,0.7)' }}
+              onChange={handleChange("message")}
+              sx={{ bgcolor: "rgba(255,255,255,0.7)" }}
             />
 
             {/* Flex container for aligning the buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}
+            >
               {/* File input button aligned to the left */}
               <Button
                 variant="outlined"
@@ -170,14 +191,14 @@ const ComposeEmail = () => {
                 onClick={() => fileInputRef.current.click()}
                 startIcon={<AttachFileIcon />}
               >
-                {formData.file ? formData.file.name : 'Choose a file'}
+                {formData.file ? formData.file.name : "Choose a file"}
               </Button>
               {/* Hidden file input element */}
               <Input
                 type="file"
                 inputRef={fileInputRef}
                 onChange={handleFileChange}
-                sx={{ display: 'none' }}
+                sx={{ display: "none" }}
               />
 
               {/* Send Email button aligned to the right */}
@@ -188,7 +209,7 @@ const ComposeEmail = () => {
                 startIcon={<SendIcon />}
                 disabled={loading}
               >
-                {loading ? 'Sending...' : 'Send Email'}
+                {loading ? "Sending..." : "Send Email"}
               </Button>
             </Box>
           </form>

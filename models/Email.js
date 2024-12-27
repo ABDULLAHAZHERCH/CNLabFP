@@ -22,7 +22,7 @@ const emailSchema = new mongoose.Schema(
       ttfb: { type: Number },
       networkType: { type: String },
       ipAddress: { type: String },
-      latency :{type: Number},
+      latency: { type: Number },
       uploadTime: { type: Number }, // Added uploadTime
       sentAt: { type: Date, default: Date.now },
     },

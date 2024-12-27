@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -6,15 +6,12 @@ import {
   Card,
   CardContent,
   Typography,
-  LinearProgress,Stack
-} from '@mui/material';
-import Navigation from '../../components/Navigation';
-import {
-  Speed,
-  CloudQueue,
-  Memory,
-  Storage,
-} from '@mui/icons-material';
+  LinearProgress,
+  Stack,
+} from "@mui/material";
+import Navigation from "../../components/Navigation";
+import { Speed, CloudQueue, Memory, Storage } from "@mui/icons-material";
+import NetworkStatsChart from "./NetworkStatsChart";
 
 const MetricCard = ({ icon: Icon, title, value, progress, color }) => (
   <Card>
@@ -25,7 +22,7 @@ const MetricCard = ({ icon: Icon, title, value, progress, color }) => (
             backgroundColor: `${color}15`,
             borderRadius: 2,
             p: 1,
-            display: 'flex',
+            display: "flex",
           }}
         >
           <Icon sx={{ color: color }} />
@@ -42,7 +39,7 @@ const MetricCard = ({ icon: Icon, title, value, progress, color }) => (
           height: 8,
           borderRadius: 4,
           backgroundColor: `${color}20`,
-          '& .MuiLinearProgress-bar': {
+          "& .MuiLinearProgress-bar": {
             backgroundColor: color,
           },
         }}
@@ -52,81 +49,127 @@ const MetricCard = ({ icon: Icon, title, value, progress, color }) => (
 );
 
 const ServerDashboard = () => {
+  const [networkStats, setNetworkStats] = useState([]);
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`/api/stats`);
+      const data = await response.json();
+      setNetworkStats(data);
+    } catch (error) {
+      console.error("Error fetching network stats:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const latestStatus = networkStats[networkStats.length - 1] || {};
+  const latestStats = latestStatus.networkStats || {};
+  // console.log("Latest Stats:", latestStats);
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <Navigation isServer />
       <Container maxWidth="xl" sx={{ mt: 4 }}>
         <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card
+              sx={{
+                mt: 4,
+                background: "linear-gradient(45deg, #00C6AE 30%, #FFD100 90%)",
+                color: "white",
+              }}
+            >
+              <CardContent>
+                <Grid container alignItems="center" spacing={3}>
+                  <Grid item xs={12} md={8}>
+                    <Typography
+                      variant="h3"
+                      gutterBottom
+                      sx={{ color: "black" }}
+                    >
+                      Server Performance Insights
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: "black", mb: 2 }}>
+                      Monitor your SMTP server's performance metrics in
+                      real-time. Track latency, throughput, and system
+                      resources.
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
           <Grid item xs={12} md={3}>
             <MetricCard
               icon={Speed}
               title="Latency"
-              value="24ms"
-              progress={75}
+              value={`${latestStats.latency || 0}ms`}
+              progress={Math.min((latestStats.latency || 0) / 2, 100)}
               color="#FF4B8C"
             />
           </Grid>
           <Grid item xs={12} md={3}>
             <MetricCard
               icon={CloudQueue}
-              title="Uptime"
-              value="99.9%"
-              progress={95}
+              title="DNS Time"
+              value={`${latestStats.dnsTime || 0}ms`}
+              progress={Math.min((latestStats.dnsTime || 0) / 2, 100)}
               color="#00C6AE"
             />
           </Grid>
           <Grid item xs={12} md={3}>
             <MetricCard
               icon={Memory}
-              title="CPU Usage"
-              value="45%"
-              progress={45}
+              title="Connect Time"
+              value={`${latestStats.connectTime || 0}ms`}
+              progress={Math.min((latestStats.connectTime || 0) / 2, 100)}
               color="#FFB800"
             />
           </Grid>
           <Grid item xs={12} md={3}>
             <MetricCard
               icon={Storage}
-              title="Storage"
-              value="67%"
-              progress={67}
+              title="SSL Handshake Time"
+              value={`${latestStats.sslHandshakeTime || 0}ms`}
+              progress={Math.min((latestStats.sslHandshakeTime || 0) / 2, 100)}
               color="#FFD100"
             />
           </Grid>
 
           <Grid item xs={12}>
-            <Card
-              sx={{
-                mt: 4,
-                background: 'linear-gradient(45deg, #00C6AE 30%, #FFD100 90%)',
-                color: 'white',
-              }}
-            >
+            <Card>
               <CardContent>
-                <Grid container alignItems="center" spacing={3}>
-                  <Grid item xs={12} md={8}>
-                    <Typography variant="h3" gutterBottom sx={{ color: 'white' }}>
-                      Server Performance Insights
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: 'white', mb: 2 }}>
-                      Monitor your SMTP server's performance metrics in real-time.
-                      Track latency, throughput, and system resources.
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Box
-                      component="img"
-                      src="/server-illustration.svg"
-                      alt="Server illustration"
-                      sx={{
-                        width: '100%',
-                        maxWidth: 300,
-                        display: 'block',
-                        margin: 'auto',
-                      }}
-                    />
-                  </Grid>
-                </Grid>
+                <Typography variant="h5" gutterBottom>
+                  Network Performance Over Time
+                </Typography>
+                <NetworkStatsChart data={networkStats} />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  Server Information
+                </Typography>
+                <Typography variant="body1">
+                  IP Address: {latestStats.ipAddress || "N/A"}
+                </Typography>
+                <Typography variant="body1">
+                  Network Type: {latestStats.networkType || "N/A"}
+                </Typography>
+                <Typography variant="body1">
+                  Last Updated:{" "}
+                  {latestStats.sentAt
+                    ? new Date(latestStats.sentAt).toLocaleString()
+                    : "N/A"}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -137,4 +180,3 @@ const ServerDashboard = () => {
 };
 
 export default ServerDashboard;
-

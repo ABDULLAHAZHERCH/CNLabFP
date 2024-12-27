@@ -1,19 +1,19 @@
 // pages/auth.js
-import React, { useState } from 'react';
-import { Box, TextField, Button, Typography } from '@mui/material';
-import { useRouter } from 'next/router';
+import React, { useState } from "react";
+import { Box, TextField, Button, Typography } from "@mui/material";
+import { useRouter } from "next/router";
 export default function SignInSignUp() {
   const [isSignUp, setIsSignUp] = useState(true); // Toggle between SignUp and SignIn
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = isSignUp ? '/api/auth/signup' : '/api/auth/signin';  
+    const url = isSignUp ? "/api/auth/signup" : "/api/auth/signin";
     const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
@@ -21,8 +21,11 @@ export default function SignInSignUp() {
 
     if (response.ok) {
       alert(data.message);
-      if(!isSignUp){
-        router.push('/client/dashboard')
+      if (!isSignUp) {
+        router.push({
+          pathname: "/client/dashboard",
+          query: { userEmail: data.email },
+        });
       }
     } else {
       setError(data.error);
@@ -33,17 +36,17 @@ export default function SignInSignUp() {
     <Box
       sx={{
         maxWidth: 400,
-        mx: 'auto',
+        mx: "auto",
         my: 4,
         padding: 4,
-        border: '1px solid #ddd',
+        border: "1px solid #ddd",
         borderRadius: 2,
-        backgroundColor: 'background.paper', // Theme background
+        backgroundColor: "background.paper", // Theme background
         boxShadow: 3,
       }}
     >
       <Typography variant="h4" sx={{ mb: 2 }}>
-        {isSignUp ? 'Sign Up' : 'Sign In'}
+        {isSignUp ? "Sign Up" : "Sign In"}
       </Typography>
       {error && <Typography color="error">{error}</Typography>}
 
@@ -72,15 +75,14 @@ export default function SignInSignUp() {
           fullWidth
           sx={{ mt: 2 }}
         >
-          {isSignUp ? 'Sign Up' : 'Sign In'}
+          {isSignUp ? "Sign Up" : "Sign In"}
         </Button>
       </form>
 
-      <Button
-        onClick={() => setIsSignUp(!isSignUp)}
-        sx={{ mt: 2 }}
-      >
-        {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+      <Button onClick={() => setIsSignUp(!isSignUp)} sx={{ mt: 2 }}>
+        {isSignUp
+          ? "Already have an account? Sign In"
+          : "Don't have an account? Sign Up"}
       </Button>
     </Box>
   );
