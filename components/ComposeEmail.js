@@ -103,6 +103,12 @@ const ComposeEmail = () => {
       if (!response.ok) throw new Error(result.message);
 
       alert("Email sent and stored successfully!");
+      setFormData({
+        recipient: "",
+        subject: "",
+        message: "",
+        file: null,
+      });
     } catch (error) {
       console.error("Error sending email:", error);
       alert("Failed to send email. Please try again later.");

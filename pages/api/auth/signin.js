@@ -27,7 +27,7 @@ export default async function handler(req, res) {
 
       return res
         .status(200)
-        .json({ message: "Sign-in successful"});
+        .json({ message: "Sign-in successful", email: user.email });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: "Server error" });

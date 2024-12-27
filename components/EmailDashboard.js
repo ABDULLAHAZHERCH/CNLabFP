@@ -99,14 +99,17 @@ const EmailDashboard = () => {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const { userEmail } = router.query;
+  console.log(userEmail);
   const [emails, setEmails] = useState([]);
-  const [email, setEmail] = useState([]);
+  // const [email, setEmail] = useState([]);
 
   const fetchEmails = async () => {
     try {
       const response = await fetch(`/api/inbox`);
       const data = await response.json();
-      setEmails(data);
+      data.reverse();
+      // if (data.recipient === userEmail) {
+        setEmails(data);
     } catch (error) {
       console.error("Error fetching emails:", error);
     }
@@ -146,9 +149,18 @@ const EmailDashboard = () => {
             mb: 4,
           }}
         >
-          <Typography variant="h5" component="h1" color="grey">
+          {/* <Typography variant="h5" component="h1" color="grey">
             Welcome Client!
-          </Typography>
+          </Typography> */}
+
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<InboxIcon />}
+            onClick={() => handleCategoryClick("inbox")}
+          >
+            Inbox {emails.length}
+          </Button>
           <Button
             variant="contained"
             color="secondary"
@@ -158,8 +170,8 @@ const EmailDashboard = () => {
             Compose Email
           </Button>
         </Box>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={3}>
+        <Grid container spacing={3} justifyContent="center">
+          {/* <Grid >
             <MailCard
               icon={<InboxIcon />}
               title="Inbox"
@@ -168,7 +180,7 @@ const EmailDashboard = () => {
               onClick={() => handleCategoryClick("inbox")}
               selected={selectedCategory === "inbox"}
             />
-          </Grid>
+          </Grid> */}
           {/* <Grid item xs={12} md={3}>
             <MailCard
               icon={<SendIcon />}
@@ -262,13 +274,13 @@ const EmailDashboard = () => {
                         >
                           <StarIcon sx={{ color: "#718096" }} />
                         </IconButton> */}
-                        <IconButton
+                        {/* <IconButton
                           edge="end"
                           aria-label="delete"
                           onClick={() => handleDeleteEmail(index)}
                         >
                           <DeleteIcon sx={{ color: "#718096" }} />
-                        </IconButton>
+                        </IconButton> */}
                       </ListItemSecondaryAction>
                     </ListItem>
                     {index < email.length - 1 && (

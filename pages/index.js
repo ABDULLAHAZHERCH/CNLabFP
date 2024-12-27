@@ -151,7 +151,7 @@ export default function Home() {
                 size="large"
                 onClick={() => handleDemoClick()}
               >
-                View Demo
+                About App
               </Button>
             </Stack>
           </Grid>
