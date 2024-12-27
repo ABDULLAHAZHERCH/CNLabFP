@@ -117,8 +117,8 @@ const ServerDashboard = () => {
             <MetricCard
               icon={CloudQueue}
               title="DNS Time"
-              value={`${latestStats.dnsTime || 1.6}ms`}
-              progress={Math.min((latestStats.dnsTime || 1.6) / 2, 100)}
+              value={`${latestStats.dnsTime || 1}ms`}
+              progress={Math.min((latestStats.dnsTime || 1) / 2, 100)}
               color="#00C6AE"
             />
           </Grid>
